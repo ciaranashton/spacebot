@@ -606,6 +606,12 @@ async fn spawn_opencode_worker_inner(
 
     let oc_secrets_store = state.deps.runtime_config.secrets.load().as_ref().clone();
 
+    // Resolve the worker model so opencode knows which provider/model to use.
+    let routing = rc.routing.load();
+    let worker_model = routing
+        .resolve(crate::ProcessType::Worker, None)
+        .to_string();
+
     let worker = if interactive {
         let (worker, input_tx) = crate::opencode::OpenCodeWorker::new_interactive(
             Some(state.channel_id.clone()),
@@ -621,6 +627,7 @@ async fn spawn_opencode_worker_inner(
             .write()
             .await
             .insert(worker_id, input_tx);
+        let worker = worker.with_model(&worker_model);
         let worker = match &oc_secrets_store {
             Some(store) => worker.with_secrets_store(store.clone()),
             None => worker,
@@ -635,6 +642,7 @@ async fn spawn_opencode_worker_inner(
             server_pool,
             state.deps.event_tx.clone(),
         );
+        let worker = worker.with_model(&worker_model);
         let worker = match &oc_secrets_store {
             Some(store) => worker.with_secrets_store(store.clone()),
             None => worker,
