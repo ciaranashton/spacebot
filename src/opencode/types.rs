@@ -37,9 +37,10 @@ pub enum PartInput {
 
 /// Model selection for a prompt.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct ModelParam {
+    #[serde(rename = "providerID")]
     pub provider_id: String,
+    #[serde(rename = "modelID")]
     pub model_id: String,
 }
 
